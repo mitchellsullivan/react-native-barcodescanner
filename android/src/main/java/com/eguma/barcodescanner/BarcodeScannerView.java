@@ -19,6 +19,8 @@ import com.google.zxing.PlanarYUVLuminanceSource;
 import com.google.zxing.ReaderException;
 import com.google.zxing.Result;
 import com.google.zxing.common.HybridBinarizer;
+import com.google.zxing.NotFoundException;
+import com.google.zxing.LuminanceSource;
 
 public class BarcodeScannerView extends FrameLayout implements Camera.PreviewCallback {
     private CameraPreview mPreview;
@@ -92,6 +94,20 @@ public class BarcodeScannerView extends FrameLayout implements Camera.PreviewCal
 
                 } finally {
                     mMultiFormatReader.reset();
+                }
+
+                if (rawResult == null) {
+                    LuminanceSource invertedSource = source.invert();
+                    bitmap = new BinaryBitmap(new HybridBinarizer(invertedSource));
+                    
+                    try {
+                        rawResult = mMultiFormatReader.decodeWithState(bitmap); 
+                    } catch (ReaderException re) {
+                    } catch (NullPointerException npe) {
+                    } catch (ArrayIndexOutOfBoundsException aoe) {
+                    } finally {
+                        mMultiFormatReader.reset();
+                    }
                 }
             }
 
